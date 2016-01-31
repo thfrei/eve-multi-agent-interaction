@@ -6,7 +6,7 @@ function DFAgent(id) {
   // execute super constructor
   eve.Agent.call(this, id);
 
-  this.skills = [];
+  this._skills = [];
 
   // load the RPC module
   this.rpc = this.loadModule('rpc', this.rpcFunctions, {timeout:2*1000});
@@ -25,14 +25,54 @@ DFAgent.prototype.rpcFunctions = {};
 DFAgent.prototype.rpcFunctions.register = function(params, from) {
   console.log('Agent', from, 'wants to register', params);
 
-  this.skills.push({skill: params.skill, agent: from});
+  // only push if skill and agent have not yet been registered
+  if(_.findWhere(this._skills, {skill: params.skill}.agent == from)){
+    var err = 'agent' + from + 'has already registered with this skill:' + params.skill;
+    console.log(err);
+    return {err: err};
+  }
+  else {
+    this._skills.push({skill: params.skill, agent: from});
+    console.log('current skill list:', this._skills)
 
+    return {status: 'ok'};
+  }
+};
+/**
+ * @param params (not used)
+ * @param from
+ * @returns {{status: string}}
+ */
+DFAgent.prototype.rpcFunctions.deRegisterAll = function(params, from){
+  // Generate new skill array without the skills from the caller agent (*from)
+  this._skills = _.reject(this._skills, function(skill){
+    return (skill.agent == from);
+  });
   return {status: 'ok'};
 };
+/**
+ * @param params {skill: 'skill'}
+ * @param from
+ * @returns {{status: string}}
+ */
+DFAgent.prototype.rpcFunctions.deRegister = function(params, from){
+  // Generate new skill array without the skill to deregister from the caller agent (*from)
+  this._skills = _.reject(this._skills, function(skill){
+    return ( (skill.agent == from) && (skill.skill == params.skill));
+  });
+  return {status: 'ok'};
+};
+/**
+ * @param params {skill: 'skill'}
+ * @param from
+ */
 DFAgent.prototype.rpcFunctions.getAgents = function(params, from) {
   console.log('Agent', from, 'wants to get all agents for',params);
 
-  return _.findWhere(this.skills, {skill: params.skill});
+  // returns all skill-agent with the required skill
+  return _.filter(this._skills, function(entry){
+    return entry.skill == params.skill;
+  });
 };
 
 module.exports = DFAgent;

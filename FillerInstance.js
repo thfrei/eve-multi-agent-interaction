@@ -11,7 +11,7 @@ eve.system.init({
   ]
 });
 
-// create two agents
+// create one agents
 var FillerInstance = new FillerAgent('Filler1', 200);
 
 Promise.all([FillerInstance.ready]).then(function () {
@@ -27,3 +27,19 @@ Promise.all([FillerInstance.ready]).then(function () {
       console.log('catchedErr',err);
     });
 });
+
+
+// Clean up
+function exitHandler(){
+  FillerInstance.rpc.request('DF', { method: 'deRegisterAll' } )
+    .then(function(reply){
+      console.log('deRegisterall successfull. exiting...');
+    })
+    .catch(function(err){
+      console.log('deRegisterAll not successfull. exiting ...');
+    });
+}
+
+process.on('exit', exitHandler);
+process.on('SIGINT', exitHandler);
+process.on('uncaughtException', exitHandler);
