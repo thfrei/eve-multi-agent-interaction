@@ -1,12 +1,12 @@
 var Promise = require('bluebird');
 var eve = require('evejs');
 
-function FillerAgent(id, props) {
+function FillerAgent(args) {
   // execute super constructor
-  eve.Agent.call(this, id);
+  eve.Agent.call(this, args.id);
 
   // Set initial filler level
-  this._fillerLevel = (props.fillerLevel)? props.fillerLevel : 100;
+  this._fillerLevel = (args.initial.fillerLevel)? args.initial.fillerLevel : 100;
 
   // load the RPC module
   this.rpc = this.loadModule('rpc', this.rpcFunctions, {timeout:2*1000});

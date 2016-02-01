@@ -12,8 +12,8 @@ eve.system.init({
 });
 
 // create two agents
-var DF = new DFAgent(program.agentName);
+var DF = new DFAgent('DF');
 
 Promise.all([DF.ready]).then(function () {
-  console.log('agent ', program.agentName, ' ready');
+  console.log('agent ', 'DF', ' ready');
 });

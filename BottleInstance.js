@@ -1,7 +1,22 @@
 var Promise = require('bluebird');
 var _ = require('underscore');
+var program = require('commander');
 var eve = require('evejs');
 var BottleAgent = require('./agents/BottleAgent');
+
+program
+  .version('0.0.2')
+  .option('-a, --agent-name <name>', 'Agent name: e.g. BottleAgent5', /^(\w*)$/i, 'BottleAgent1') // agent-name becomes agentName
+  .option('-d, --directory-facilitator <df>', 'Agent name of the Directory Facilitator', /^(\w*)$/i, 'DF')
+  .parse(process.argv);
+
+var agentOptions = {
+  id: program.agentName,
+  DF: program.directoryFacilitator,
+  initial: {
+    fillerLevel: program.fillerLevel
+  }
+};
 
 eve.system.init({
   transports: [
@@ -13,13 +28,13 @@ eve.system.init({
 });
 
 // create two agents
-var BottleInstance = new BottleAgent('Bottle1', 200);
+var BottleInstance = new BottleAgent(agentOptions);
 
 Promise.all([BottleInstance.ready]).then(function () {
   // Register skill
 
 
-  BottleInstance.rpc.request('DF',{method: 'getAgents', params: {skill: 'fill'}})
+  BottleInstance.rpc.request(agentOptions.DF,{method: 'getAgentsForSkill', params: {skill: 'fill'}})
     .then(function(reply){
       if(reply.err){
         console.log('#getAgents could not be performed', err);

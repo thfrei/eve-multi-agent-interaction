@@ -7,6 +7,7 @@ function DFAgent(id) {
   eve.Agent.call(this, id);
 
   this._skills = [];
+  this._agents = [];
 
   // load the RPC module
   this.rpc = this.loadModule('rpc', this.rpcFunctions, {timeout:2*1000});
@@ -21,13 +22,25 @@ DFAgent.prototype.constructor = DFAgent;
 
 // create an object containing all RPC functions.
 DFAgent.prototype.rpcFunctions = {};
-
-DFAgent.prototype.rpcFunctions.register = function(params, from) {
+DFAgent.prototype.rpcFunctions.register = function(params, from){
+  console.log('Agent', from, 'wants to register itself');
+  if(_.findWhere(this._agents, {agent: from})){
+    var err = from + 'has already registered';
+    console.log(err);
+    return {err: err};
+  }
+  else {
+    this._agents.push({agent: from});
+    return {status: 'ok', description: 'agent has been registered'};
+  }
+};
+DFAgent.prototype.rpcFunctions.registerSkill = function(params, from) {
   console.log('Agent', from, 'wants to register', params);
 
   // only push if skill and agent have not yet been registered
-  if(_.findWhere(this._skills, {skill: params.skill}.agent == from)){
-    var err = 'agent' + from + 'has already registered with this skill:' + params.skill;
+  var agentList = _.findWhere(this._skills, {skill: params.skill}); // see if from is in this list
+  if(_.findWhere(agentList, {agent: from})){
+    var err = 'agent ' + from + ' has already registered with this skill:' + params.skill;
     console.log(err);
     return {err: err};
   }
@@ -66,7 +79,7 @@ DFAgent.prototype.rpcFunctions.deRegister = function(params, from){
  * @param params {skill: 'skill'}
  * @param from
  */
-DFAgent.prototype.rpcFunctions.getAgents = function(params, from) {
+DFAgent.prototype.rpcFunctions.getAgentsForSkill = function(params, from) {
   console.log('Agent', from, 'wants to get all agents for',params);
 
   // returns all skill-agent with the required skill
